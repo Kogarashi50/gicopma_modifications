@@ -1,0 +1,26 @@
+# Laravel
+/vendor/
+.env
+.env.*
+/storage/*.key
+/storage/logs/
+/storage/framework/
+/bootstrap/cache/
+
+# Node / React
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Uploads (VERY IMPORTANT in your case)
+conventionsapp/public/uploads/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Misc
+*.log
