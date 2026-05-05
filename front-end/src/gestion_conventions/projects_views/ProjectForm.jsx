@@ -63,6 +63,22 @@ const parseCurrency = (v) => {
 
 const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
+const normalizeProjectErrors = (errors = {}) => ({
+    ...errors,
+    Id_Programme: errors.Id_Programme?.map?.((message) => (
+        /id programme field is required/i.test(message)
+            ? 'Le programme est requis.'
+            : message
+    )) || errors.Id_Programme,
+});
+
+const formatServerErrors = (errors = {}) => (
+    Object.values(errors)
+        .flat()
+        .filter(Boolean)
+        .join(' ')
+);
+
 // --- Main Component ---
 const ProjetForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, baseApiUrl = 'http://localhost:8000/api' }) => {
     const initialFormData = useMemo(() => ({
@@ -115,7 +131,11 @@ const ProjetForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, base
                     : []
             );
 
-            setProgrammeOptions(extract(results[0]));
+            setProgrammeOptions(extract(results[0]).map(programme => ({
+                ...programme,
+                id: programme.value,
+                value: programme.code != null ? String(programme.code) : String(programme.value),
+            })));
             setProvinceOptions(extract(results[1]));
             setCommuneOptions(extract(results[2]));
             setSecteurOptions(extract(results[3]).map(s => ({ value: s.id, label: s.description_fr })));
@@ -147,7 +167,10 @@ const ProjetForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, base
                 if (!data || !isMounted) return;
 
                 const findOptionByValue = (options, valueToFind) => (
-                    options.find(opt => String(opt.value) === String(valueToFind)) || null
+                    options.find(opt => (
+                        String(opt.value) === String(valueToFind)
+                        || String(opt.id) === String(valueToFind)
+                    )) || null
                 );
 
                 const mapIdsToOptions = (options, items) => {
@@ -278,13 +301,24 @@ const ProjetForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, base
                 setDataToResubmit(dataPayload);
                 setShowConfirmModal(true);
             } else {
-console.log('Validation errors:', error?.data?.errors);
+                console.log('Validation errors:', error?.data?.errors);
 
-const errorMsg =
-    error?.data?.message +
-    '\n' +
-    JSON.stringify(error?.data?.errors, null, 2);                setSubmissionStatus({ loading: false, error: errorMsg, success: false });
-                if (error?.status === 422) setFormErrors(error.data.errors || {});
+                if (error?.status === 422) {
+                    const normalizedErrors = normalizeProjectErrors(error.data.errors || {});
+                    setFormErrors(normalizedErrors);
+                    setSubmissionStatus({
+                        loading: false,
+                        error: formatServerErrors(normalizedErrors) || 'Veuillez corriger les erreurs indiquees.',
+                        success: false,
+                    });
+                    return;
+                }
+
+                setSubmissionStatus({
+                    loading: false,
+                    error: error?.data?.message || "Erreur serveur lors de l'enregistrement du projet.",
+                    success: false,
+                });
             }
         }
     }, [baseApiUrl, isEditing, itemId, onClose, onItemCreated, onItemUpdated]);
@@ -299,7 +333,7 @@ const errorMsg =
             duree_projet_mois: formData.duree_projet_mois,
             date_debut_prevue: formData.date_debut_prevue || null,
             date_fin_prevue: formData.date_fin_prevue || null,
-            Id_Programme: formData.programme?.value ?? null,
+            Id_Programme: formData.programme?.value != null ? String(formData.programme.value) : null,
             province_ids: formData.provinces.map(p => p.value),
             commune_ids: formData.communes.map(c => c.value),
             maitres_ouvrage_ids: formData.maitresOuvrage.map(m => m.value),
@@ -480,13 +514,23 @@ const errorMsg =
                             <Select
                                 options={programmeOptions}
                                 value={formData.programme}
-                                onChange={opt => setFormData(p => ({ ...p, programme: opt }))}
+                                onChange={opt => {
+                                    setFormData(p => ({ ...p, programme: opt }));
+                                    if (formErrors.Id_Programme) {
+                                        setFormErrors(p => ({ ...p, Id_Programme: undefined }));
+                                    }
+                                }}
                                 styles={selectStyles}
                                 placeholder="- Sélectionner -"
                                 isClearable
                                 className={formErrors.Id_Programme ? 'is-invalid' : ''}
                                 menuPortalTarget={document.body}
                             />
+                            {formErrors.Id_Programme && (
+                                <div className="invalid-feedback d-block small mt-1">
+                                    {Array.isArray(formErrors.Id_Programme) ? formErrors.Id_Programme[0] : formErrors.Id_Programme}
+                                </div>
+                            )}
                         </Form.Group>
                     </Row>
 

@@ -47,7 +47,11 @@ class ProgrammeController extends Controller
                 } elseif (empty($programme->Description)) {
                     $label = !empty($programme->Code_Programme) ? $programme->Code_Programme : "Programme ID: {$programme->Id}";
                 }
-                return ['value' => $programme->Id, 'label' => $label];
+                return [
+                    'value' => $programme->Id,
+                    'code' => $programme->Code_Programme,
+                    'label' => $label,
+                ];
             });
 
             Log::info("API: Returning " . $options->count() . " Programme options.");

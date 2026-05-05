@@ -129,7 +129,7 @@ class ProjetController extends Controller
         $validationRules = [
             'Code_Projet' => ['required', 'integer', Rule::unique('projet', 'Code_Projet')],
             'Nom_Projet' => 'required|string|max:65535',
-            'Id_Programme' => ['required', 'integer', Rule::exists('programme', 'Id')],
+            'Id_Programme' => ['required', Rule::exists('programme', 'Code_Programme')],
             'Convention_Code' => ['nullable', 'integer', Rule::exists('convention', 'id')],
             
             'secteur_id' => ['nullable', 'integer', Rule::exists('secteurs', 'id')],
@@ -159,7 +159,10 @@ class ProjetController extends Controller
         ];
 
         try {
-            $validatedData = $request->validate($validationRules);
+            $validatedData = $request->validate($validationRules, [
+                'Id_Programme.required' => 'Le programme est requis.',
+                'Id_Programme.exists' => 'Le programme selectionne est invalide.',
+            ]);
         } catch (LaravelValidationException $e) {
             return response()->json(['message' => 'Les données fournies étaient invalides.', 'errors' => $e->errors()], 422);
         }
@@ -239,7 +242,7 @@ class ProjetController extends Controller
         $validationRules = [
             'Code_Projet' => ['required', 'integer', Rule::unique('projet', 'Code_Projet')->ignore($projet->ID_Projet, 'ID_Projet')],
             'Nom_Projet' => 'required|string|max:65535',
-            'Id_Programme' => ['required', 'integer', Rule::exists('programme', 'Id')],
+            'Id_Programme' => ['required', Rule::exists('programme', 'Code_Programme')],
             'Convention_Code' => ['nullable', 'integer', Rule::exists('convention', 'id')],
             
             'maitres_ouvrage_ids' => 'nullable|array',
@@ -289,7 +292,10 @@ class ProjetController extends Controller
         ];
 
         try {
-            $validatedData = $request->validate($validationRules);
+            $validatedData = $request->validate($validationRules, [
+                'Id_Programme.required' => 'Le programme est requis.',
+                'Id_Programme.exists' => 'Le programme selectionne est invalide.',
+            ]);
         } catch (LaravelValidationException $e) {
             return response()->json(['message' => 'Les données fournies étaient invalides.', 'errors' => $e->errors()], 422);
         }
