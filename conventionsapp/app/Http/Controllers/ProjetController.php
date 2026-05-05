@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use App\Models\Projet;
 use App\Models\SousProjet;
+use App\Models\Commune;
 use App\Models\EngagementFinancier;
 use App\Models\Versement;
 
@@ -22,6 +23,35 @@ use Illuminate\Database\QueryException;
 
 class ProjetController extends Controller
 {
+    private function validateProjectLocations(array $provinceIds, array $communeIds): void
+    {
+        if (empty($communeIds)) {
+            return;
+        }
+
+        if (empty($provinceIds)) {
+            throw LaravelValidationException::withMessages([
+                'province_ids' => ['Veuillez selectionner au moins une province avant de selectionner des communes.'],
+            ]);
+        }
+
+        $invalidCommunes = Commune::whereIn('Id', $communeIds)
+            ->where(function ($query) use ($provinceIds) {
+                $query->whereNull('province_id')
+                    ->orWhereNotIn('province_id', $provinceIds);
+            })
+            ->pluck('Description')
+            ->filter()
+            ->values()
+            ->all();
+
+        if (!empty($invalidCommunes)) {
+            throw LaravelValidationException::withMessages([
+                'commune_ids' => ['Les communes suivantes ne correspondent pas aux provinces selectionnees: ' . implode(', ', $invalidCommunes)],
+            ]);
+        }
+    }
+
     private function mapProjectVersementsForCreate(array $versements): array
     {
         return collect($versements)
@@ -163,6 +193,7 @@ class ProjetController extends Controller
                 'Id_Programme.required' => 'Le programme est requis.',
                 'Id_Programme.exists' => 'Le programme selectionne est invalide.',
             ]);
+            $this->validateProjectLocations($validatedData['province_ids'] ?? [], $validatedData['commune_ids'] ?? []);
         } catch (LaravelValidationException $e) {
             return response()->json(['message' => 'Les données fournies étaient invalides.', 'errors' => $e->errors()], 422);
         }
@@ -296,6 +327,7 @@ class ProjetController extends Controller
                 'Id_Programme.required' => 'Le programme est requis.',
                 'Id_Programme.exists' => 'Le programme selectionne est invalide.',
             ]);
+            $this->validateProjectLocations($validatedData['province_ids'] ?? [], $validatedData['commune_ids'] ?? []);
         } catch (LaravelValidationException $e) {
             return response()->json(['message' => 'Les données fournies étaient invalides.', 'errors' => $e->errors()], 422);
         }

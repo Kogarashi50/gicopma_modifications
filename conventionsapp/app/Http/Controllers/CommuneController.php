@@ -27,7 +27,11 @@ class CommuneController extends Controller
             }
 
             $options = $communes->map(function ($commune) {
-                return ['value' => $commune->Id, 'label' => $commune->Description];
+                return [
+                    'value' => $commune->Id,
+                    'label' => $commune->Description,
+                    'province_id' => $commune->province_id,
+                ];
             });
 
             Log::info("API: Returning " . $options->count() . " Commune options" . ($provinceId ? " for province_id: {$provinceId}" : ""));
@@ -47,10 +51,14 @@ class CommuneController extends Controller
         try {
             $communes = Commune::where('province_id', $provinceId)
                 ->orderBy('Description')
-                ->get(['Id', 'Description', 'Code', 'Description_Arr']);
+                ->get(['Id', 'Description', 'Code', 'Description_Arr', 'province_id']);
 
             $options = $communes->map(function ($commune) {
-                return ['value' => $commune->Id, 'label' => $commune->Description];
+                return [
+                    'value' => $commune->Id,
+                    'label' => $commune->Description,
+                    'province_id' => $commune->province_id,
+                ];
             });
 
             Log::info("API: Returning " . $options->count() . " communes for province_id: {$provinceId}");

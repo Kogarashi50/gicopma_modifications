@@ -113,6 +113,29 @@ const ProjetForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, base
     const [engagementManagerKey, setEngagementManagerKey] = useState(Date.now());
 
     const isEditing = useMemo(() => itemId !== null, [itemId]);
+    const filteredCommuneOptions = useMemo(() => {
+        if (!Array.isArray(formData.provinces) || formData.provinces.length === 0) {
+            return [];
+        }
+
+        const selectedProvinceIds = new Set(formData.provinces.map(province => String(province.value)));
+        return communeOptions.filter(commune => selectedProvinceIds.has(String(commune.province_id)));
+    }, [communeOptions, formData.provinces]);
+
+    const handleProvinceChange = useCallback((selectedOptions) => {
+        const nextProvinces = selectedOptions || [];
+        const selectedProvinceIds = new Set(nextProvinces.map(province => String(province.value)));
+
+        setFormData(prev => ({
+            ...prev,
+            provinces: nextProvinces,
+            communes: prev.communes.filter(commune => selectedProvinceIds.has(String(commune.province_id))),
+        }));
+    }, []);
+
+    const handleCommuneChange = useCallback((selectedOptions) => {
+        setFormData(prev => ({ ...prev, communes: selectedOptions || [] }));
+    }, []);
 
     const fetchOptions = useCallback(async () => {
         setLoadingOptions(true);
@@ -579,9 +602,10 @@ const ProjetForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, base
                                     <Select
                                         options={provinceOptions}
                                         value={formData.provinces}
-                                        onChange={opts => setFormData(p => ({ ...p, provinces: opts || [] }))}
+                                        onChange={handleProvinceChange}
                                         styles={selectStyles}
                                         isMulti
+                                        isClearable
                                         closeMenuOnSelect={false}
                                         menuPortalTarget={document.body}
                                     />
@@ -592,14 +616,26 @@ const ProjetForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, base
                                         {bilingualLabel('Communes', 'الجماعات')}
                                     </Form.Label>
                                     <Select
-                                        options={communeOptions}
+                                        options={filteredCommuneOptions}
                                         value={formData.communes}
-                                        onChange={opts => setFormData(p => ({ ...p, communes: opts || [] }))}
+                                        onChange={handleCommuneChange}
                                         styles={selectStyles}
                                         isMulti
+                                        isClearable
                                         closeMenuOnSelect={false}
+                                        isDisabled={!formData.provinces || formData.provinces.length === 0}
+                                        placeholder={
+                                            !formData.provinces || formData.provinces.length === 0
+                                                ? "Selectionnez d'abord une province"
+                                                : "- Selectionner -"
+                                        }
                                         menuPortalTarget={document.body}
                                     />
+                                    {(!formData.provinces || formData.provinces.length === 0) && (
+                                        <Form.Text className="text-muted">
+                                            Veuillez d'abord selectionner au moins une province.
+                                        </Form.Text>
+                                    )}
                                 </Form.Group>
                             </Row>
                         </Card.Body>
