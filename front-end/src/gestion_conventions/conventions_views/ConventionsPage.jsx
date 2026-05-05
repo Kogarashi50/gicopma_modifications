@@ -109,6 +109,14 @@ const locationFilterFn = (row, columnId, filterValue) => {
     return locations.some(loc => filterIds.includes(String(loc?.value ?? loc?.id ?? loc)));
 };
 
+const REGIONAL_LOCALISATION_VALUE = 'regional';
+const REGIONAL_LOCALISATION_LABEL = 'طابع جهوي';
+const REGIONAL_LOCALISATION_OPTION = { value: REGIONAL_LOCALISATION_VALUE, label: REGIONAL_LOCALISATION_LABEL };
+const isRegionalLocalisation = (value) => {
+    const text = String(value || '').trim();
+    return text === REGIONAL_LOCALISATION_VALUE || text === REGIONAL_LOCALISATION_LABEL;
+};
+
 // <-- REPLACE/ADD THIS 'commune' FILTER (supports multi-select) -->
 const communeFilterFn = (row, columnId, filterValue) => {
     // accept null/undefined/empty-array as "no filter"
@@ -508,6 +516,7 @@ const ConventionsPage = () => {
                     accessorFn: row => {
                         const locData = row.localisation;
                         if (!locData) return [];
+                        if (isRegionalLocalisation(locData)) return [REGIONAL_LOCALISATION_OPTION];
                         let provinceIds = [];
                         const trimmedData = String(locData).trim();
                         if (trimmedData.startsWith('[') && trimmedData.endsWith(']')) {
@@ -710,7 +719,7 @@ const renderConventionFilters = useCallback((table) => {
                             <Form.Label size="sm" className="mb-1">Localisation</Form.Label>
                             <Select
                                 isMulti
-                                options={options.provinces}
+                                options={[REGIONAL_LOCALISATION_OPTION, ...(options.provinces || [])]}
                                 value={Array.isArray(filters.province) ? filters.province : (filters.province ? [filters.province] : [])}
                                 onChange={(opt) => {
                                     // when province changes, clear commune filter

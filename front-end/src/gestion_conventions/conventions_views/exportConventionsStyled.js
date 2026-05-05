@@ -45,6 +45,7 @@ export async function exportConventionsStyled({ baseApiUrl, onError, onProgress 
         const formatDate = d => d ? new Date(d) : null;
         const formatAmount = a => !isNaN(parseFloat(a)) ? parseFloat(a) : null;
         const richText = (label, value) => value ? [{ font: { bold: true, name: 'Calibri' }, text: `${label}: ` }, { font: { name: 'Calibri' }, text: String(value) }] : [{ font: { bold: true, name: 'Calibri' }, text: `${label}: ` }, { font: { name: 'Calibri' }, text: '-' }];
+        const isRegionalLocalisation = value => ['regional', 'طابع جهوي'].includes(String(value || '').trim());
 
         // 2. Define and Style Hierarchical Headers
         if (onProgress) onProgress('Construction des en-têtes...');
@@ -114,7 +115,9 @@ export async function exportConventionsStyled({ baseApiUrl, onError, onProgress 
             const documents = conv.documents || [];
             const allPayments = convParts.flatMap(cp => (cp.versements || []).map(v => ({...v}))).sort((a,b) => new Date(a.date_versement) - new Date(b.date_versement));
             const maitresOuvrage = conv.maitres_ouvrage || [];
-            const communes = conv.communes || [];
+            const communes = isRegionalLocalisation(conv.localisation)
+                ? [{ Description: 'طابع جهوي' }]
+                : (conv.communes || []);
 
             const numRowsForConv = Math.max(convParts.length, allPayments.length, documents.length, maitresOuvrage.length, communes.length, 1);
             const startRow = currentDataRow;

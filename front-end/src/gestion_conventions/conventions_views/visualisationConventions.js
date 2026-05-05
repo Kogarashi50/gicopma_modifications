@@ -227,11 +227,26 @@ const getPrincipalNameById = useCallback((id, list) => {
       console.log(found)
       return found ? found.label : displayData(id, `ID Introuvable: ${id}`);
   }, []);
+  const REGIONAL_LOCALISATION_VALUE = 'regional';
+  const REGIONAL_LOCALISATION_LABEL = 'طابع جهوي';
   const getProvinceNames = useCallback(
     (localisationString) => {
+      const text = String(localisationString || '').trim()
+      if (text === REGIONAL_LOCALISATION_VALUE || text === REGIONAL_LOCALISATION_LABEL) {
+        return (
+          <Badge pill bg="light" text="dark" className="border me-1 mb-1">
+            {REGIONAL_LOCALISATION_LABEL}
+          </Badge>
+        )
+      }
       if (!localisationString || typeof localisationString !== "string" || !Array.isArray(provincesList) || provincesList.length === 0)
         return displayData(null)
-      const ids = JSON.parse(localisationString)
+      let ids = []
+      try {
+        ids = JSON.parse(localisationString)
+      } catch (e) {
+        return displayData(null)
+      }
       if (ids.length === 0 || !Array.isArray(ids)) return displayData(null)
       return (
         <Stack direction="horizontal" gap={1} wrap="wrap">

@@ -25,16 +25,69 @@ const bilingualLabel = (fr, ar, required = false) => (
 );
 
 // --- (Constants and helpers remain the same) ---
-const GROUP_NAME_MAP = { 'Domaines': 'Axes Stratégiques' };
+const GROUP_NAME_MAP = {
+    'Domaines': 'Axes stratégiques',
+    'Appeloffres': "Appels d'Offre",
+    'Versements cp': 'Versements (Conv.)',
+    'Versements pp': 'Versements (Proj.)',
+    'Ordres service': 'Ordre de Service',
+    'Marches': 'Marchés',
+    'Roles': 'Rôles & Permissions',
+    'Rôles': 'Rôles & Permissions',
+    'History': "Historique d'activité",
+    'Convention alerts': 'Alertes conventions',
+    'Report': 'Rapports',
+    'Fichiers': 'Fichiers',
+};
 const formatPermissionLabel = (permissionName) => permissionName.replace(/\bdomaines\b/g, 'axes stratégiques');
-const SIDEBAR_ORDER = ['Dashboard', 'Conventions', 'Partenaires', 'Partenaire summary', 'Chantiers', 'Programmes', 'Domaines', 'Projets', 'Sousprojets', 'Engagements', 'Communes', 'Provinces', 'Marches', 'Bon de Commande', 'Contrat Droit Commun', 'Utilisateurs', 'Rôles', 'Secteurs'];
+const SIDEBAR_ORDER = [
+    'Dashboard',
+    'Conventions',
+    'Avenants',
+    'Versements cp',
+    'Partenaires',
+    'Partenaire summary',
+    'Programmes',
+    'Domaines',
+    'Projets',
+    'Versements pp',
+    'Sousprojets',
+    'Communes',
+    'Provinces',
+    'Secteurs',
+    'Appeloffres',
+    'Marches',
+    'Bon de Commande',
+    'Contrat Droit Commun',
+    'Ordres service',
+    'Utilisateurs',
+    'Rôles',
+    'Roles',
+    'History',
+    'Observations',
+    'Convention alerts',
+    'Fichiers',
+    'Report',
+];
 const DASHBOARD_PERMISSION_GROUP = 'Dashboard';
 const DASHBOARD_VIEW_PERMISSION = 'view dashboard';
+const PERMISSION_ACTION_ORDER = ['view', 'create', 'update', 'delete', 'download', 'receive', 'manage'];
 const isCrudPermission = (permissionName) => {
     const crudVerbs = ['create', 'view', 'update', 'delete'];
     const parts = permissionName.split(' ');
     return crudVerbs.includes(parts[0]);
 };
+const sortPermissionsBySidebarAction = (permissions) => [...permissions].sort((a, b) => {
+    const actionA = a.name.split(' ')[0];
+    const actionB = b.name.split(' ')[0];
+    const indexA = PERMISSION_ACTION_ORDER.indexOf(actionA);
+    const indexB = PERMISSION_ACTION_ORDER.indexOf(actionB);
+    const weightA = indexA === -1 ? PERMISSION_ACTION_ORDER.length : indexA;
+    const weightB = indexB === -1 ? PERMISSION_ACTION_ORDER.length : indexB;
+
+    if (weightA !== weightB) return weightA - weightB;
+    return a.name.localeCompare(b.name);
+});
 
 const RoleForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, baseApiUrl }) => {
     const isEditing = !!itemId;
@@ -78,8 +131,8 @@ const RoleForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, baseAp
                 for (const groupName in permissionsGrouped) {
                     const permissions = permissionsGrouped[groupName];
                     
-                    const crudPerms = permissions.filter(p => isCrudPermission(p.name));
-                    const otherPerms = permissions.filter(p => !isCrudPermission(p.name));
+                    const crudPerms = sortPermissionsBySidebarAction(permissions.filter(p => isCrudPermission(p.name)));
+                    const otherPerms = sortPermissionsBySidebarAction(permissions.filter(p => !isCrudPermission(p.name)));
 
                     if (crudPerms.length > 0) crudGroups[groupName] = crudPerms;
                     if (otherPerms.length > 0) otherGroups[groupName] = otherPerms;

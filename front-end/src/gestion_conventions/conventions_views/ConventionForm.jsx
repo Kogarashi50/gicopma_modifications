@@ -87,6 +87,12 @@ const ConventionForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, 
     const intituleRef = useRef(null);
     const INTITULE_MAX = 250;
     const FILE_INTITULE_MAX = 120;
+    const REGIONAL_LOCALISATION_VALUE = 'regional';
+    const REGIONAL_LOCALISATION_LABEL = 'طابع جهوي';
+    const isRegionalLocalisation = (value) => {
+        const text = String(value || '').trim();
+        return text === REGIONAL_LOCALISATION_VALUE || text === REGIONAL_LOCALISATION_LABEL;
+    };
     const [formData, setFormData] = useState({
         Code: '',
         code_provisoire: '',
@@ -107,6 +113,7 @@ const ConventionForm = ({ itemId = null, onClose, onItemCreated, onItemUpdated, 
         projetId: null,
         programmeId: null,
         observations: '',
+        isRegionalScope: false,
         provinces: [],
         communes: [], // --- ADD THIS LINE ---
         fonctionnaires: [],
@@ -329,8 +336,9 @@ const [progRes, partRes, provRes, projRes, foncRes, cadreRes, engTypeRes, sectRe
                 projetId: findOption(projetsOptions, data.id_projet),
                 programmeId: findOption(programmesOptions, data.Id_Programme),
                 observations: data.observations || prev.observations,
-                provinces: parseMultiFromSemicolonString(provincesOptions, data.localisation),
-                communes: findMultiOptionsById(communesOptions, data.communes || []),
+                isRegionalScope: isRegionalLocalisation(data.localisation),
+                provinces: isRegionalLocalisation(data.localisation) ? [] : parseMultiFromSemicolonString(provincesOptions, data.localisation),
+                communes: isRegionalLocalisation(data.localisation) ? [] : findMultiOptionsById(communesOptions, data.communes || []),
                 fonctionnaires: parseMultiFromSemicolonString(fonctionnairesOptions, data.id_fonctionnaire),
                 maitresOuvrage: (data.maitres_ouvrage || []).map(mo => ({ value: mo.id, label: mo.nom })),
                 maitresOuvrageDelegues: (data.maitres_ouvrage_delegues || []).map(mod => ({ value: mod.id, label: mod.nom })),
@@ -455,6 +463,11 @@ useEffect(() => {
     // client-side filter of communesOptions by selected provinces
     const allCommunes = Array.isArray(communesOptions) ? communesOptions : [];
 
+    if (formData.isRegionalScope) {
+        setFilteredCommuneOptions([]);
+        return;
+    }
+
     // no provinces selected -> show all communes
     if (!Array.isArray(formData.provinces) || formData.provinces.length === 0) {
         setFilteredCommuneOptions(allCommunes);
@@ -486,7 +499,7 @@ useEffect(() => {
             setFormData(prev => ({ ...prev, communes: remaining, communesIds: remaining.map(r => r.value) }));
         }
     }
-}, [formData.provinces, communesOptions, provincesChanged]);
+}, [formData.provinces, formData.isRegionalScope, communesOptions, provincesChanged]);
     // Initialize filtered communes when communesOptions are loaded or when editing
     useEffect(() => {
         // When editing and provinces are loaded, filter communes
@@ -501,9 +514,23 @@ useEffect(() => {
     }, [communesOptions, isEditing]);
 
 const handleProvinceChange = (selectedOptions) => {
-    setFormData(prev => ({ ...prev, provinces: Array.isArray(selectedOptions) ? selectedOptions : (selectedOptions ? [selectedOptions] : []) }));
+    setFormData(prev => ({ ...prev, isRegionalScope: false, provinces: Array.isArray(selectedOptions) ? selectedOptions : (selectedOptions ? [selectedOptions] : []) }));
     // mark that user changed provinces (enables pruning behavior)
     setProvincesChanged(true);
+};
+
+const handleRegionalScopeChange = (e) => {
+    const checked = e.target.checked;
+    setFormData(prev => ({
+        ...prev,
+        isRegionalScope: checked,
+        provinces: checked ? [] : prev.provinces,
+        communes: checked ? [] : prev.communes,
+        communesIds: checked ? [] : prev.communesIds,
+    }));
+    if (checked) {
+        setFilteredCommuneOptions([]);
+    }
 };
 
     const handleFonctionnaireChange = (selectedOptions) => { setFormData(prev => ({ ...prev, fonctionnaires: selectedOptions || [] })); };
@@ -612,7 +639,7 @@ const handleSecteurChange = (selectedOption) => { setFormData(prev => ({ ...prev
 
         // Process form data with correct field names
         Object.entries(formData).forEach(([key, value]) => {
-            if (key === 'communes') return;
+            if (key === 'communes' || key === 'isRegionalScope') return;
 
             const backendKey = fieldMappings[key] || key.toLowerCase();
             let processedValue = value;
@@ -643,8 +670,10 @@ const handleSecteurChange = (selectedOption) => { setFormData(prev => ({ ...prev
         });
 
         // Handle special fields
-        dataPayload.set('localisation', JSON.stringify(formData.provinces.map(p => p.value)));
-        formData.communes.forEach(item => dataPayload.append('communes[]', item.value));
+        dataPayload.set('localisation', formData.isRegionalScope ? REGIONAL_LOCALISATION_VALUE : JSON.stringify(formData.provinces.map(p => p.value)));
+        if (!formData.isRegionalScope) {
+            formData.communes.forEach(item => dataPayload.append('communes[]', item.value));
+        }
         dataPayload.set('maitres_ouvrage_ids', JSON.stringify(formData.maitresOuvrage.map(mo => mo.value)));
         dataPayload.set('maitres_ouvrage_delegues_ids', JSON.stringify(formData.maitresOuvrageDelegues.map(mod => mod.value)));
         dataPayload.set('id_fonctionnaire', JSON.stringify(formData.fonctionnaires.map(f => f.value)));
@@ -931,7 +960,15 @@ const showProjetField = ['specifique', 'convention'].includes(formData.type);
                                 <Form.Label className=" w-100  mb-1 fw-medium">
                                     {bilingualLabel("Localisation", "الموقع")}
                                 </Form.Label>
-                                <Select inputId='province-select-input' name="provinces" menuPlacement="auto" options={provincesOptions} value={formData.provinces} onChange={handleProvinceChange} styles={selectStyles} placeholder="- Selectionner -" isMulti isClearable closeMenuOnSelect={false} isLoading={loadingOptions} className={formErrors.Province ? 'is-invalid' : ''} />
+                                <Form.Check
+                                    type="checkbox"
+                                    id="regional-scope-checkbox"
+                                    className="mb-2"
+                                    label={REGIONAL_LOCALISATION_LABEL}
+                                    checked={!!formData.isRegionalScope}
+                                    onChange={handleRegionalScopeChange}
+                                />
+                                <Select inputId='province-select-input' name="provinces" menuPlacement="auto" options={provincesOptions} value={formData.provinces} onChange={handleProvinceChange} styles={selectStyles} placeholder="- Selectionner -" isMulti isClearable closeMenuOnSelect={false} isLoading={loadingOptions} isDisabled={formData.isRegionalScope} className={formErrors.Province ? 'is-invalid' : ''} />
                                 <Form.Control.Feedback type="invalid" style={{ display: formErrors.Province ? 'block' : 'none' }}>{formErrors.Province}</Form.Control.Feedback>
                             </Form.Group>
                             <Form.Group as={Col} controlId="formCommune">
@@ -950,9 +987,12 @@ const showProjetField = ['specifique', 'convention'].includes(formData.type);
     isClearable
     isSearchable
     isLoading={optionsLoading}
+    isDisabled={formData.isRegionalScope}
     classNamePrefix="react-select"
 />
-    {(!formData.provinces || formData.provinces.length === 0) && (
+    {formData.isRegionalScope ? (
+        <Form.Text className="text-muted">Convention à portée régionale.</Form.Text>
+    ) : (!formData.provinces || formData.provinces.length === 0) && (
         <Form.Text className="text-muted">Veuillez d'abord sélectionner au moins une province</Form.Text>
     )}
     <Form.Control.Feedback type="invalid" style={{ display: formErrors.communes ? 'block' : 'none' }}>{formErrors.communes}</Form.Control.Feedback>

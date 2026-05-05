@@ -6,6 +6,7 @@ use App\Models\Document;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use App\Models\Projet;
+use App\Models\SousProjet;
 use App\Models\EngagementFinancier;
 use App\Models\Versement;
 
@@ -405,8 +406,32 @@ class ProjetController extends Controller
             return response()->json(['message' => 'Projet non trouvé.'], 404);
         }
 
+        $sousProjetsCount = SousProjet::where('ID_Projet_Maitre', $projet->Code_Projet)->count();
+        if ($sousProjetsCount > 0) {
+            return response()->json([
+                'message' => "Impossible de supprimer ce projet : il est lié à {$sousProjetsCount} sous-projet(s).",
+            ], 409);
+        }
+
+        $engagementIds = $projet->engagementsFinanciers()->pluck('id');
+        $versementsCount = $engagementIds->isNotEmpty()
+            ? Versement::whereIn('engagement_id', $engagementIds)->count()
+            : 0;
+
+        if ($versementsCount > 0) {
+            return response()->json([
+                'message' => "Impossible de supprimer ce projet : il contient {$versementsCount} versement(s) PP.",
+            ], 409);
+        }
+
         DB::beginTransaction();
         try {
+            $projet->communes()->detach();
+            $projet->provinces()->detach();
+            $projet->maitresOuvrage()->detach();
+            $projet->maitresOuvrageDelegues()->detach();
+            DB::table('convention')->where('id_projet', $projet->ID_Projet)->update(['id_projet' => null]);
+            Log::info("Detached non-blocking relations for projet ID_Projet: {$projet->ID_Projet}");
 
             $projet->engagementsFinanciers()->delete();
             Log::info("Engagements deleted for projet ID_Projet: {$projet->ID_Projet}");

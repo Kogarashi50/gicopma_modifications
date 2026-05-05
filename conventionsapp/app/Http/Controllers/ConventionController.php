@@ -415,7 +415,8 @@ foreach ($partnerCommitmentsInput as $index => $commitment) {
                 $convention->maitresOuvrage()->attach($validatedData['maitres_ouvrage_ids']);
                 Log::info("Attaché " . count($validatedData['maitres_ouvrage_ids']) . " maître(s) d'ouvrage à la convention.");
             }
-             if (!empty($validatedData['communes'])) {
+             $isRegionalConvention = in_array($validatedData['localisation'] ?? null, ['regional', 'طابع جهوي'], true);
+             if (!$isRegionalConvention && !empty($validatedData['communes'])) {
                 $convention->communes()->attach($validatedData['communes']);
                 Log::info("Attaché " . count($validatedData['communes']) . " commune(s) à la convention.");
             }
@@ -931,7 +932,11 @@ foreach ($partnerCommitmentsInput as $index => $commitment) {
                 $convention->maitresOuvrageDelegues()->sync($validatedData['maitres_ouvrage_delegues_ids']);
                 Log::info("Synchronisé " . count($validatedData['maitres_ouvrage_delegues_ids']) . " maître(s) d'ouvrage délégué(s) avec la convention.");
             }
-            if (isset($validatedData['communes'])) {
+            $isRegionalConvention = in_array($validatedData['localisation'] ?? null, ['regional', 'طابع جهوي'], true);
+            if ($isRegionalConvention) {
+                $convention->communes()->sync([]);
+                Log::info("Localisation régionale: communes vidées pour la convention.");
+            } elseif (isset($validatedData['communes'])) {
                 $convention->communes()->sync($validatedData['communes']);
                 Log::info("Synchronisé " . count($validatedData['communes']) . " commune(s) avec la convention.");
             }
