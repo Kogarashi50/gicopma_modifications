@@ -408,8 +408,7 @@ Route::get('/secteurs', [SecteurController::class, 'getOptions'])
              ->middleware('permission:create projets|update projets|create avenants|update avenants|create conventions|update conventions|create versements_cp|update versements_cp|create versements_pp|update versements_pp');
 
         Route::get('/fonctionnaires', [FonctionnaireController::class, 'indexForDropdown'])
-            ->name('fonctionnaires')
-            ->middleware('permission:create projets|update projets|create avenants|update avenants|create conventions|update conventions|create marches|update marches|create ordres_service|update ordres_service|create bon_commande|update bon_commande|manage users');
+            ->name('fonctionnaires');
 
         Route::get('/appel-offres', [AppelOffreController::class, 'getOptions'])
              ->name('appeloffres')
@@ -421,7 +420,7 @@ Route::get('/secteurs', [SecteurController::class, 'getOptions'])
 
         Route::get('/provinces', [ProvinceController::class, 'getOptions'])
             ->name('provinces')
-            ->middleware('permission:create conventions|update conventions|create projets|update projets|create sousprojets|update sousprojets');
+            ->middleware('permission:view provinces|create conventions|update conventions|view conventions|create projets|update projets|view projets|create sousprojets|update sousprojets|view sousprojets|view appeloffres|create appeloffres|update appeloffres');
         Route::get('/communes', [CommuneController::class, 'getOptions'])
         ->name('communes');
         Route::get('/communes/province/{provinceId}', [CommuneController::class, 'getByProvince'])
