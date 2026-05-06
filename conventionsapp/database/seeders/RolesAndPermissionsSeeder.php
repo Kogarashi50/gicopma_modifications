@@ -38,28 +38,30 @@ class RolesAndPermissionsSeeder extends Seeder
             'download report', 'view appeloffres', 'create appeloffres', 'update appeloffres', 'delete appeloffres',
             'manage users', 'manage roles', 'view history', 'view observations', 'create observations',
             'update observations', 'delete observations', 'view secteurs', 'create secteurs', 'update secteurs',
-            'delete secteurs', 'receive convention alerts'
+            'delete secteurs', 'view maitre_ouvrage', 'create maitre_ouvrage', 'update maitre_ouvrage',
+            'delete maitre_ouvrage', 'view maitre_ouvrage_delegue', 'create maitre_ouvrage_delegue',
+            'update maitre_ouvrage_delegue', 'delete maitre_ouvrage_delegue', 'receive convention alerts'
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission, 'guard_name' => 'sanctum']);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'sanctum']);
         }
 
         // Create Roles
-        $adminRole = Role::create(['name' => 'Admin', 'guard_name' => 'sanctum']);
-        $conventionManagerRole = Role::create(['name' => 'gestionnaire des conventions', 'guard_name' => 'sanctum']);
-        $projectManagerRole = Role::create(['name' => 'gestionnaire des projets', 'guard_name' => 'sanctum']);
-        $marcheManagerRole = Role::create(['name' => 'gestionnaire marché', 'guard_name' => 'sanctum']);
-        $bcManagerRole = Role::create(['name' => 'gestionnaire des bon de commande', 'guard_name' => 'sanctum']);
-        $viewerRole = Role::create(['name' => 'Viewer', 'guard_name' => 'sanctum']);
-        $loubnaRole = Role::create(['name' => 'loubna', 'guard_name' => 'sanctum']);
+        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'sanctum']);
+        $conventionManagerRole = Role::firstOrCreate(['name' => 'gestionnaire des conventions', 'guard_name' => 'sanctum']);
+        $projectManagerRole = Role::firstOrCreate(['name' => 'gestionnaire des projets', 'guard_name' => 'sanctum']);
+        $marcheManagerRole = Role::firstOrCreate(['name' => 'gestionnaire marché', 'guard_name' => 'sanctum']);
+        $bcManagerRole = Role::firstOrCreate(['name' => 'gestionnaire des bon de commande', 'guard_name' => 'sanctum']);
+        $viewerRole = Role::firstOrCreate(['name' => 'Viewer', 'guard_name' => 'sanctum']);
+        $loubnaRole = Role::firstOrCreate(['name' => 'loubna', 'guard_name' => 'sanctum']);
         
         // Assign all permissions to Admin
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole->givePermissionTo(Permission::where('guard_name', 'sanctum')->get());
         
         // Assign specific permissions to other roles
-        $conventionManagerRole->givePermissionTo(['view conventions', 'create conventions', 'update conventions', 'delete conventions', 'view partenaires', 'create partenaires', 'update partenaires', 'delete partenaires', 'view programmes', 'create programmes', 'update programmes', 'delete programmes', 'view communes', 'create communes', 'update communes', 'delete communes', 'view provinces', 'create provinces', 'update provinces', 'delete provinces', 'view engagements', 'create engagements', 'update engagements', 'delete engagements', 'view avenants', 'create avenants', 'update avenants', 'delete avenants', 'view versements_cp', 'create versements_cp', 'update versements_cp', 'delete versements_cp']);
-        $projectManagerRole->givePermissionTo(['view projets', 'create projets', 'update projets', 'delete projets', 'view sousprojets', 'create sousprojets', 'update sousprojets', 'delete sousprojets', 'view partenaires', 'create partenaires', 'update partenaires', 'delete partenaires', 'view programmes', 'create programmes', 'update programmes', 'delete programmes', 'view communes', 'create communes', 'update communes', 'delete communes', 'view provinces', 'create provinces', 'update provinces', 'delete provinces', 'view engagements_financiers', 'create engagements_financiers', 'update engagements_financiers', 'delete engagements_financiers', 'view versements_pp', 'create versements_pp', 'update versements_pp', 'delete versements_pp']);
+        $conventionManagerRole->givePermissionTo(['view conventions', 'create conventions', 'update conventions', 'delete conventions', 'view partenaires', 'create partenaires', 'update partenaires', 'delete partenaires', 'view programmes', 'create programmes', 'update programmes', 'delete programmes', 'view communes', 'create communes', 'update communes', 'delete communes', 'view provinces', 'create provinces', 'update provinces', 'delete provinces', 'view engagements', 'create engagements', 'update engagements', 'delete engagements', 'view avenants', 'create avenants', 'update avenants', 'delete avenants', 'view versements_cp', 'create versements_cp', 'update versements_cp', 'delete versements_cp', 'view maitre_ouvrage', 'create maitre_ouvrage', 'update maitre_ouvrage', 'delete maitre_ouvrage', 'view maitre_ouvrage_delegue', 'create maitre_ouvrage_delegue', 'update maitre_ouvrage_delegue', 'delete maitre_ouvrage_delegue']);
+        $projectManagerRole->givePermissionTo(['view projets', 'create projets', 'update projets', 'delete projets', 'view sousprojets', 'create sousprojets', 'update sousprojets', 'delete sousprojets', 'view partenaires', 'create partenaires', 'update partenaires', 'delete partenaires', 'view programmes', 'create programmes', 'update programmes', 'delete programmes', 'view communes', 'create communes', 'update communes', 'delete communes', 'view provinces', 'create provinces', 'update provinces', 'delete provinces', 'view engagements_financiers', 'create engagements_financiers', 'update engagements_financiers', 'delete engagements_financiers', 'view versements_pp', 'create versements_pp', 'update versements_pp', 'delete versements_pp', 'view maitre_ouvrage', 'create maitre_ouvrage', 'update maitre_ouvrage', 'delete maitre_ouvrage', 'view maitre_ouvrage_delegue', 'create maitre_ouvrage_delegue', 'update maitre_ouvrage_delegue', 'delete maitre_ouvrage_delegue']);
         $marcheManagerRole->givePermissionTo(['view marches', 'create marches', 'update marches', 'delete marches', 'view appeloffres', 'create appeloffres', 'update appeloffres', 'delete appeloffres', 'view ordres_service', 'create ordres_service', 'update ordres_service', 'delete ordres_service', 'view communes', 'create communes', 'update communes', 'delete communes', 'view provinces', 'create provinces', 'update provinces', 'delete provinces']);
         $bcManagerRole->givePermissionTo(['view bon_commande', 'create bon_commande', 'update bon_commande', 'delete bon_commande', 'view contrat_droit_commun', 'create contrat_droit_commun', 'update contrat_droit_commun', 'delete contrat_droit_commun', 'view communes', 'create communes', 'update communes', 'delete communes', 'view provinces', 'create provinces', 'update provinces', 'delete provinces']);
         $viewerRole->givePermissionTo(['view domaines', 'create domaines', 'update domaines', 'delete domaines', 'view projets', 'create projets', 'update projets', 'delete projets']);

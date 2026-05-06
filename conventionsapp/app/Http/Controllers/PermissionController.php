@@ -35,6 +35,8 @@ class PermissionController extends Controller
                  else if (str_contains($permission->name, 'partenaire details')) $resource = 'Partenaires';
                  else if (str_contains($permission->name, 'bon_commande')) $resource = 'Bon de Commande';
                  else if (str_contains($permission->name, 'contrat_droit_commun')) $resource = 'Contrat Droit Commun';
+                 else if (str_contains($permission->name, 'maitre_ouvrage_delegue')) $resource = 'Maîtres d\'ouvrage délégués';
+                 else if (str_contains($permission->name, 'maitre_ouvrage')) $resource = 'Maîtres d\'ouvrage';
                  else if (str_contains($permission->name, 'dashboard')) $resource = 'Dashboard';
                  else if (str_contains($permission->name, 'fichiers')) $resource = 'Fichiers';
                  else if (str_contains($permission->name, 'users')) $resource = 'Utilisateurs';

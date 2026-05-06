@@ -157,22 +157,22 @@ Route::get('/projets/{projet_code}/locations', [ProjetController::class, 'getLoc
      ->name('projets.locations');
 
     // --- Maîtres d'Ouvrage ---
-    Route::get('/maitre-ouvrage', [MaitreOuvrageController::class, 'index'])->middleware('permission:view conventions');
-    Route::post('/maitre-ouvrage', [MaitreOuvrageController::class, 'store'])->middleware('permission:create conventions');
-    Route::get('/maitre-ouvrage/{maitre_ouvrage}', [MaitreOuvrageController::class, 'show'])->middleware('permission:view conventions');
-    Route::put('/maitre-ouvrage/{maitre_ouvrage}', [MaitreOuvrageController::class, 'update'])->middleware('permission:update conventions');
-    Route::delete('/maitre-ouvrage/{maitre_ouvrage}', [MaitreOuvrageController::class, 'destroy'])->middleware('permission:delete conventions');
+    Route::get('/maitre-ouvrage', [MaitreOuvrageController::class, 'index'])->middleware('permission:view maitre_ouvrage');
+    Route::post('/maitre-ouvrage', [MaitreOuvrageController::class, 'store'])->middleware('permission:create maitre_ouvrage');
+    Route::get('/maitre-ouvrage/{maitre_ouvrage}', [MaitreOuvrageController::class, 'show'])->middleware('permission:view maitre_ouvrage');
+    Route::put('/maitre-ouvrage/{maitre_ouvrage}', [MaitreOuvrageController::class, 'update'])->middleware('permission:update maitre_ouvrage');
+    Route::delete('/maitre-ouvrage/{maitre_ouvrage}', [MaitreOuvrageController::class, 'destroy'])->middleware('permission:delete maitre_ouvrage');
 
     // --- Maîtres d'Ouvrage Délégués ---
-    Route::get('/maitre-ouvrage-delegue', [MaitreOuvrageDelegueController::class, 'index'])->middleware('permission:view conventions');
-    Route::post('/maitre-ouvrage-delegue', [MaitreOuvrageDelegueController::class, 'store'])->middleware('permission:create conventions');
-    Route::get('/maitre-ouvrage-delegue/{maitre_ouvrage_delegue}', [MaitreOuvrageDelegueController::class, 'show'])->middleware('permission:view conventions');
-    Route::put('/maitre-ouvrage-delegue/{maitre_ouvrage_delegue}', [MaitreOuvrageDelegueController::class, 'update'])->middleware('permission:update conventions');
-    Route::delete('/maitre-ouvrage-delegue/{maitre_ouvrage_delegue}', [MaitreOuvrageDelegueController::class, 'destroy'])->middleware('permission:delete conventions');
+    Route::get('/maitre-ouvrage-delegue', [MaitreOuvrageDelegueController::class, 'index'])->middleware('permission:view maitre_ouvrage_delegue');
+    Route::post('/maitre-ouvrage-delegue', [MaitreOuvrageDelegueController::class, 'store'])->middleware('permission:create maitre_ouvrage_delegue');
+    Route::get('/maitre-ouvrage-delegue/{maitre_ouvrage_delegue}', [MaitreOuvrageDelegueController::class, 'show'])->middleware('permission:view maitre_ouvrage_delegue');
+    Route::put('/maitre-ouvrage-delegue/{maitre_ouvrage_delegue}', [MaitreOuvrageDelegueController::class, 'update'])->middleware('permission:update maitre_ouvrage_delegue');
+    Route::delete('/maitre-ouvrage-delegue/{maitre_ouvrage_delegue}', [MaitreOuvrageDelegueController::class, 'destroy'])->middleware('permission:delete maitre_ouvrage_delegue');
 
     // --- Maîtres d'Ouvrage Options Routes (using different path to avoid conflicts) ---
-    Route::get('/options/maitre-ouvrage', [MaitreOuvrageController::class, 'getOptions'])->middleware('permission:create conventions|update conventions|view conventions');
-    Route::get('/options/maitre-ouvrage-delegue', [MaitreOuvrageDelegueController::class, 'getOptions'])->middleware('permission:create conventions|update conventions|view conventions');
+    Route::get('/options/maitre-ouvrage', [MaitreOuvrageController::class, 'getOptions'])->middleware('permission:create conventions|update conventions|view conventions|create projets|update projets|view projets|view maitre_ouvrage|create maitre_ouvrage|update maitre_ouvrage');
+    Route::get('/options/maitre-ouvrage-delegue', [MaitreOuvrageDelegueController::class, 'getOptions'])->middleware('permission:create conventions|update conventions|view conventions|create projets|update projets|view projets|view maitre_ouvrage_delegue|create maitre_ouvrage_delegue|update maitre_ouvrage_delegue');
     
     // --- Engagement Types ---
     Route::apiResource('engagement-types', EngagementTypeController::class)->middleware([
@@ -438,7 +438,7 @@ Route::get('/secteurs', [SecteurController::class, 'getOptions'])
             ->name('marches-publics') // Route name: options.marches-publics
             ->middleware('permission:create bon_commande|update bon_commande|view bon_commande');
         Route::get('/maitres-ouvrage-delegues',[MaitreOuvrageDelegueController::class,'getOptions'])
-        ->middleware('permission:create conventions|update conventions|create projets|update projets');;
+        ->middleware('permission:create conventions|update conventions|create projets|update projets|view maitre_ouvrage_delegue|create maitre_ouvrage_delegue|update maitre_ouvrage_delegue');;
         Route::get('/engagement-types', [EngagementTypeController::class, 'getOptions'])
             ->name('engagement-types')
             ->middleware('permission:create conventions|update conventions|view conventions');
